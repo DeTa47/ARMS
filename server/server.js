@@ -1,13 +1,20 @@
 require('dotenv').config();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const express = require('express');
+const cors = require ('cors');
 const bodyParser = require('body-parser');
 const app = express();
-app.use(bodyParser.json());
+const EmailGenerator = require('./utils/EmailGenerator')
 const UserDetails = require('./schema/UserDetails');
-
 mongoose.connect(process.env.DB_URI).then(console.log('DB connected')).catch((err)=>console.error(err));
+
+let corsOptions = {
+    origin: ['http://localhost:5173']
+}
+app.use(bodyParser.json());
+app.use(cors(corsOptions));
 
 async function hashPassword (pwd){
     try{
@@ -21,86 +28,171 @@ async function hashPassword (pwd){
    
 }
 
+
+
+function generateToken (payload){
+    return new Promise((resolve, reject)=>{
+            jwt.sign(payload, process.env.JWT_SECRET, (err, token)=>{
+                if(err){
+                    reject(err);
+                }
+
+                else{
+                    resolve(token);
+                }
+            })
+    });
+}
+
+app.patch('/verifyUser', async (req,res)=>{
+    try{
+        const requestData = req.body;
+        const user = await UserDetails.findOne({
+            Email: requestData.Email
+        });
+
+        if(user === null) return res.status(400).send("Invalid user");
+
+        user.EmailVerification = true;
+
+        await user.save();
+
+        return res.status(200).send({ msg: "User Verified"})
+
+
+    } catch(error){
+        return res.status(500).send(error);
+    }
+
+    
+
+})
+
+app.post ('/sendVerifMail', async (req, res)=>{
+    try{
+        
+        const requestData = req.body;
+        const email = requestData.Email;
+
+        verifCode = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+
+        EmailGenerator(email, verifCode);
+
+        return res.status(201).send({msg:'Email Sent', code:verifCode});
+
+    }
+    catch(err){
+        console.error(err);
+        return res.status(500).send({msg: err})
+    }
+})
+
+app.post('/login', async (req, res)=>{
+
+    try{
+            const requestData = req.body;
+            const userData = await UserDetails.findOne( {
+                [`Email`]:requestData.Email
+            });
+
+            if (userData === null){
+                return res.status(500).send({message:'User does not exist'});
+            }
+
+            const type = userData.CustomerType;
+
+            const hashedPassword = await hashPassword(requestData.Password);
+
+            const isPasswordCorrect = bcrypt.compare(requestData.Password, hashedPassword);
+
+            if (isPasswordCorrect) {
+                
+                const payload = {
+                    id: userData._id,
+                    Name: userData[type][`${type}Name`],
+                    Email: userData.Email,
+                    CustomerType: userData.CustomerType,
+                    EmailVerified: userData.EmailVerification,
+                    MobileVerified: userData.MobileNumberVerification,
+                    ApprovalStatus: userData.Status
+                }
+                const token = await generateToken(payload);
+
+                return res.status(201).json({
+                    message: 'User Logged in!',
+                    token: token,
+                    data: payload
+                });
+                
+
+            } else {
+                console.log("Invalid credentials.");
+            }
+    }
+    catch(error){
+
+    }
+
+});
+
 app.post('/register', async (req, res)=> {
 
     try{
-        const requestData = await req.body;
+        const requestData = req.body;
+
+        const type = requestData.CustomerType;
         
+        const checkEmail = await UserDetails.findOne( {
+            
+            [`Email`]:requestData.Email
+        });
+
+        if (checkEmail !== null){
+           return res.status(500).send({message:'User already exists'});
+        }
+
         const hashedPassword = await hashPassword(requestData.Password);
 
-        if (requestData.CustomerType === "Admin"){
+       
+        const userData = await UserDetails.create({  
+            CustomerType:type,
+            Email: requestData.Email,
+            Password: hashedPassword,
+            [type]: {
+                [`${type}Name`]:requestData.Name,
+                
+            }
+         });
 
-                const userData = await UserDetails.create({
-                    CustomerType:requestData.CustomerType,
-                    Admin:{
-                        AdminName:requestData.Name,
-                        AdminEmail: requestData.Email,
-                        AdminPassword: hashedPassword
-                    },
-                    
-                });
-
-                console.log('User Data generated',userData);
-
-                const savedUser = await userData.save();
-                console.log("User Saved Succesfully:", savedUser);
-
-
-                return res.status(201).send({
-                    message: 'User Registered:',
-                    data: savedUser
-                });
+        const payload = {
+            id: userData._id,
+            Name: userData[type][`${type}Name`],
+            Email: userData.Email,
+            CustomerType: userData.CustomerType,
+            EmailVerified: userData.EmailVerification,
+            MobileVerified: userData.MobileNumberVerification,
+            ApprovalStatus: userData.Status
         }
-        else if(requestData.CustomerType === 'Individual'){
-            const userData = await UserDetails.create({
-                CustomerType:requestData.CustomerType,
-                Individual:{
-                    IndName:requestData.Name,
-                    IndEmail: requestData.Email,
-                    IndPassword: hashedPassword
-                },
-                RegisteredOn: requestData.time,
-            });
+        
+        const token = await generateToken(payload);
 
-            const savedUser = await userData.save();
-            console.log("User Saved Succesfully:", savedUser);
 
-            return res.status(201).send({
-                message: 'User Registered',
-                data:savedUser
-            });
-        }
-        else{
-            const userData = await UserDetails.create({
-                CustomerType:requestData.CustomerType,
-                Organization:{
-                    OrgName:requestData.Name,
-                    OrgEmail: requestData.Email,
-                    OrgPassword: hashedPassword
-                },
-                RegisteredOn: requestData.time,
-            });
-
-            const savedUser = await userData.save();
-            console.log("User Saved Succesfully:", savedUser);
-
-            return res.status(201).send({
-                message: 'User Registered',
-                data:savedUser
-            });
-        }
+        return res.status(201).json({
+                message: 'User Registered!',
+                token:token,
+                data: payload
+        });
+        
     }
     catch (err){
-            console.error(`Error ${err}`);
+            console.error(err);
             return res.status(500).send({
-                message: err
+                message: err.message
             });
    }
 });
 
-const server = app.listen(8000, () => {
-    var address = server.address().address;
-    var port = server.address().port;
+const server = app.listen(process.env.PORT, () => {
 
-    console.log(`Server started at: http://${address}:${port}`);
+    console.log(`Server started at: http://${server.address().address}${server.address().port}`);
 });
