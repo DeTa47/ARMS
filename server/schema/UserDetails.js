@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const OrganizationSchema = new mongoose.Schema({
+
     OrganizationName: {type: String},
     OrganizationAddress: {type: String},
     OrganizationCity: {type: String},
@@ -11,10 +12,11 @@ const IndividualSchema = new mongoose.Schema({
     IndividualName: {type: String},
     IndividualAddress: {type: String},
     IndividualCity: {type: String},
-});
+
 
 const AdminSchema = new mongoose.Schema({
     AdminName: {type: String},
+
 })
 
 const UserDetailsSchema = new mongoose.Schema({
@@ -33,6 +35,7 @@ const UserDetailsSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+
     Organization: {
         type: OrganizationSchema,
         required: false
@@ -46,6 +49,7 @@ const UserDetailsSchema = new mongoose.Schema({
         type: AdminSchema,
         required: false,        
     },
+
 
     EmailVerification: {
         type:Boolean,
@@ -74,6 +78,7 @@ const UserDetailsSchema = new mongoose.Schema({
     RemarkForRejection: String,
 
     ApprovedOn: Date
+
 });
 
 module.exports = mongoose.model('UserDetails', UserDetailsSchema);

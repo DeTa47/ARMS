@@ -1,5 +1,6 @@
 require('dotenv').config();
 const bcrypt = require('bcrypt');
+
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -32,6 +33,7 @@ const verifyToken = (req, res, next) => {
         return res.status(403).json({ message: 'Invalid token.' });
     }
 };
+
 
 async function hashPassword (pwd){
     try{
@@ -212,4 +214,5 @@ app.post('/register', async (req, res)=> {
 const server = app.listen(process.env.PORT, () => {
 
     console.log(`Server started at: http://${server.address().address}${server.address().port}`);
+
 });
