@@ -16,6 +16,23 @@ let corsOptions = {
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: 'Invalid token.' });
+    }
+};
+
 async function hashPassword (pwd){
     try{
         const saltRounds = parseInt(process.env.SALT_ROUNDS);
@@ -44,7 +61,7 @@ function generateToken (payload){
     });
 }
 
-app.patch('/verifyUser', async (req,res)=>{
+app.patch('/verifyUser', verifyToken, async (req,res)=>{
     try{
         const requestData = req.body;
         const user = await UserDetails.findOne({
@@ -68,7 +85,7 @@ app.patch('/verifyUser', async (req,res)=>{
 
 })
 
-app.post ('/sendVerifMail', async (req, res)=>{
+app.post ('/sendVerifMail', verifyToken, async (req, res)=>{
     try{
         
         const requestData = req.body;

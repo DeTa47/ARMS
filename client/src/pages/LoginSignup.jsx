@@ -96,7 +96,6 @@ export default function LoginSignup() {
             'Content-Type':'application/json'
           }}).then((response)=>{ 
 
-            console.log(response.data);
 
             setAuth(response.data);
 

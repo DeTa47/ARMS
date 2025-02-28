@@ -31,7 +31,13 @@ export default function EmailSent(){
         try{
             const response = await axios.post('http://localhost:8000/sendVerifMail', {
                     Email: auth?.data?.Email
-            })
+            }, 
+            { 
+                headers: {
+                'Content-Type':'application/json',
+                'Authorization': `Bearer ${auth?.token}`
+                } 
+            }  )
             if (response?.data?.code) {
                 
                 setEmailOTP(response.data.code);
@@ -74,7 +80,8 @@ export default function EmailSent(){
 
                         { 
                             headers: {
-                            'Content-Type':'application/json'
+                            'Content-Type':'application/json',
+                            'Authorization': `Bearer ${auth?.token}`
                             } 
                         }                                     
                     );
