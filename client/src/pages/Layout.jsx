@@ -1,12 +1,19 @@
-import { Outlet } from "react-router-dom"
+import { Outlet } from "react-router-dom";
+import Header from '../components/Header';
+import Box from '@mui/material/Box';
+import { useState } from 'react';
 
 const Layout = () => {
-    return (
-        
-        <main className="">
-            <Outlet />
-        </main>
-    )
-}
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-export default Layout
+  return (
+    <>
+      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <main className="">
+          <Outlet />
+        </main>
+    </>
+  );
+};
+
+export default Layout;

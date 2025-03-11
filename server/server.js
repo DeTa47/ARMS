@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 const app = express();
 const EmailGenerator = require('./utils/EmailGenerator')
 const UserDetails = require('./schema/UserDetails');
+const GroupDetails = require('./schema/Groups');
+const researchRoutes = require('./routes/researchRoutes');
 mongoose.connect(process.env.DB_URI).then(console.log('DB connected')).catch((err)=>console.error(err));
 
 let corsOptions = {
@@ -15,6 +17,8 @@ let corsOptions = {
 }
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
+app.use('/', researchRoutes);
+
 
 async function hashPassword (pwd){
     try{
@@ -28,7 +32,16 @@ async function hashPassword (pwd){
    
 }
 
-
+app.get('/getGroups', async (req, res)=>{
+    try{
+        const groups = await GroupDetails.find();
+        res.status(200).json(groups);
+    }
+    catch(error){
+        console.error(error);
+        res.status(500).json({message: 'Error fetching groups'});
+    }
+})
 
 function generateToken (payload){
     return new Promise((resolve, reject)=>{
@@ -101,9 +114,11 @@ app.post('/login', async (req, res)=>{
 
             const type = userData.CustomerType;
 
-            const hashedPassword = await hashPassword(requestData.Password);
+            
 
-            const isPasswordCorrect = bcrypt.compare(requestData.Password, hashedPassword);
+            const isPasswordCorrect = await bcrypt.compare(requestData.Password, userData.Password);
+
+            
 
             if (isPasswordCorrect) {
                 
@@ -126,7 +141,7 @@ app.post('/login', async (req, res)=>{
                 
 
             } else {
-                console.log("Invalid credentials.");
+                return res.status(500).send({message:'Invalid Password!'});
             }
     }
     catch(error){
