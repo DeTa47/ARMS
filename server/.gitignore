@@ -1,5 +1,6 @@
 node_modules/
 /node_modules
+/output
 /.pnp
 .pnp.js
 .DS_Store

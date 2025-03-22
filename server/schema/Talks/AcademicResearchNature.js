@@ -21,7 +21,7 @@ const academicResearchNatureSchema = new mongoose.Schema({
     type: String
   },
   supportingDocument: {
-    type: String // Assuming this is a file path or URL
+    type: Buffer
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { alpha } from '@mui/material/styles';
-import AddDate from '../components/AddDate';
+//import AddDate from '../components/AddDate';
 import AddIcon from '@mui/icons-material/Add';
 //import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import axios from 'axios';
@@ -431,17 +431,18 @@ export default function EnhancedTable({ selectOptions, auth }) {
                               value={editRowData[cell.id]}
                               onChange={(e) => handleInputChange(e, cell.id, row._id)}
                             />
-                          ) : (editRowId === row._id && (cell.id.includes('Document')) ? ( 
+                          ) : (editRowId === row._id && (cell.id.includes('Document') || cell.id.includes('Certificate')||cell.id.inclues('Certificate')) ? ( 
                               <UploadFile Accept={'image/*,.pdf, .docx, .xlsx'} Id={"Upload Document"} Name={"Upload Document"} handlenputChange={handleInputChange} cellId={cell.id} rowId={row._id}/>
                           ): 
                           
-                          editRowId === row._id && (cell.id.includes('Date')) ? 
-                          (
-                           <>
-                            <AddDate cellId={cell.id} rowId={row._id} handleinputChange={handleInputChange}>
+                          // editRowId === row._id && (cell.id.includes('Date')) ? 
+                          // (
+                          //  <>
+                          //   <AddDate cellId={cell.id} rowId={row._id} handleinputChange={handleInputChange}>
                             
-                            </AddDate>
-                            </>) : row[cell.id])}
+                          //   </AddDate>
+                          //   </>) : 
+                          row[cell.id])}
                         </TableCell>
                       )
                     )}

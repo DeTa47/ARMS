@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+//import useAxiosPrivate from "../hooks/useAxiosPrivate";
+
 import OTPInput from "../components/OTPInput";
 import icon from '../assets/otp-icon.png';
 import Button from '../components/Button';
 import { FaSpinner } from 'react-icons/fa';
+import axios from 'axios';
 
 
 export default function EmailSent(){
@@ -18,7 +20,7 @@ export default function EmailSent(){
     const [countdown, setCountDown] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const axios = usePrivateAxios();
+    //const axios = axios();
 
     const from = location.state?.from?.pathname;
 
