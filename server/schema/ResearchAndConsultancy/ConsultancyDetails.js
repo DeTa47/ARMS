@@ -3,32 +3,32 @@ const mongoose = require('mongoose');
 const consultancyDetailsSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    
   },
   collaboratingInstitute: {
     type: String,
-    required: true
+    
   },
   address: {
     type: String
   },
   startDate: {
     type: Date,
-    required: true
+    
   },
   duration: {
-    type: Number, // Duration in months
-    required: true
+    type: String, 
+    
   },
   amount: {
-    type: Number,
-    required: true
+    type: String,
+    
   },
   detailsOutcome: {
     type: String
   },
   supportingDocument: {
-    type: String // Assuming this is a file path or URL
+    type: String
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

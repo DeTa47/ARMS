@@ -1,19 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import  useAuth  from '../hooks/useAuth';
 import MsuBarodaLogo from '../assets/Msu_baroda_logo.png';
-import Logout from '../components/Logout';
+import useLogout from '../hooks/useLogout';
 
-const Header = ({ isLoggedIn, setIsLoggedIn }) => {
+const Header = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const location = useLocation();
   const navigate = useNavigate();
+  const logout  = useLogout();
 
-  const handleLoginLogout = () => {
-    if (isLoggedIn) {
-      Logout();
-      setIsLoggedIn(false);ī
+  useEffect(() => {
+    if (location.pathname === '/dashboard' || location.pathname === '/Admin') {
+      setIsLoggedIn(true);
     } else {
-      navigate('/login');
+      setIsLoggedIn(false);
     }
+  }, );
+
+  const handleLogout = async () => {
+    if ( (location.pathname === '/dashboard'|| location.pathname === '/Admin')) {
+      setIsLoggedIn(false);
+    }
+    await logout();
+    navigate('/login');
   };
 
   return (
@@ -25,7 +37,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
             The Maharaja Sayajirao University of Baroda
           </Typography>
         </Box>
-        <Button color="inherit" onClick={handleLoginLogout}>
+        <Button color="inherit" onClick={handleLogout}>
           {isLoggedIn ? 'Logout' : 'Login'}
         </Button>
       </Toolbar>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import axios from 'axios';
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import OTPInput from "../components/OTPInput";
 import icon from '../assets/otp-icon.png';
 import Button from '../components/Button';
@@ -18,6 +18,7 @@ export default function EmailSent(){
     const [countdown, setCountDown] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const axios = usePrivateAxios();
 
     const from = location.state?.from?.pathname;
 
@@ -31,6 +32,10 @@ export default function EmailSent(){
         try{
             const response = await axios.post('http://localhost:8000/sendVerifMail', {
                     Email: auth?.data?.Email
+            }, 
+            {headers: {
+                'Content-Type':'application/json'
+                }
             })
             if (response?.data?.code) {
                 

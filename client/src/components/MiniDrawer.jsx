@@ -105,7 +105,7 @@ export default function MiniDrawer({ selectOptions, datachanger }) {
         {open ? selectOptions?.map((option) => (
           <StyledButton
             key={option._id}
-            active={activeOption === option._id}
+            {...(activeOption === option._id && { active: "true" })}
             onClick={() => { handleClick(option._id); console.log(`option`, option.routes); datachanger(option); }}
           >
             <Typography>{option.name}</Typography>

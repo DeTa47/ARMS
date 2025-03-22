@@ -5,20 +5,26 @@ const mongoose = require('mongoose');
 const express = require('express');
 const cors = require ('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const app = express();
 const EmailGenerator = require('./utils/EmailGenerator')
 const UserDetails = require('./schema/UserDetails');
 const GroupDetails = require('./schema/Groups');
 const researchRoutes = require('./routes/researchRoutes');
+const verifyJWT = require('./middleware/verifyToken');
+const cvgen = require('./utils/CVGenerator');
+
+
 mongoose.connect(process.env.DB_URI).then(console.log('DB connected')).catch((err)=>console.error(err));
 
 let corsOptions = {
-    origin: ['http://localhost:5173']
+    origin: ['http://localhost:5173'],
+    credentials: true,
 }
+//app.use(express.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
-app.use('/', researchRoutes);
-
+app.use(cookieParser());
 
 async function hashPassword (pwd){
     try{
@@ -31,6 +37,43 @@ async function hashPassword (pwd){
     }
    
 }
+app.patch('/Logout', async (req, res)=>{  
+        const user = await UserDetails.findOne({Email:req.body.Email});
+        if(!user) return res.status(400).send("Invalid user");
+        user.refreshToken = '';
+        await user.save();
+        return res.status(200).send("User Logged Out");
+
+  });
+app.get('/refresh', async (req, res)=>{
+
+    try{
+        const cookies = req.headers;
+        console.log(cookies);
+        if (!cookies?.jwt) return res.status(401).json({message: 'No token found'});
+        console.log('exit');
+        const refreshToken = cookies.jwt;
+        console.log('Refresh Token',refreshToken);
+        const foundUser = await UserDetails.findOne({refreshToken});
+        
+        if (!foundUser) return res.sendStatus(403);
+
+        jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET,
+            (err, decoded) => {
+                if (err || foundUser.Email !== decoded.Email) return res.sendStatus(403);
+                //const roles = Object.values(foundUser.roles);
+                const accessToken = generateToken({Id: foundUser._id, Email: foundUser.Email}, process.env.JWT_SECRET, '20s');
+                res.json({ accessToken })
+            }
+        );
+
+    }
+    catch(error){
+
+    }
+});
 
 app.get('/getGroups', async (req, res)=>{
     try{
@@ -43,9 +86,10 @@ app.get('/getGroups', async (req, res)=>{
     }
 })
 
-function generateToken (payload){
+
+function generateToken (payload, secret, expiry){
     return new Promise((resolve, reject)=>{
-            jwt.sign(payload, process.env.JWT_SECRET, (err, token)=>{
+            jwt.sign(payload, secret, {expiresIn: expiry}, (err, token)=>{
                 if(err){
                     reject(err);
                 }
@@ -56,6 +100,19 @@ function generateToken (payload){
             })
     });
 }
+
+app.post('/generateCV', async (req, res)=>{
+
+    try{
+        const userId = req.body.userId;
+        const outputPath = req.body.outputPath;
+        cvgen.generateConsultancyPDF(userId, outputPath);
+        res.status(200).send('CV Generated!');
+    }
+    catch(error){
+        console.error(error);
+    }
+});
 
 app.patch('/verifyUser', async (req,res)=>{
     try{
@@ -131,13 +188,24 @@ app.post('/login', async (req, res)=>{
                     MobileVerified: userData.MobileNumberVerification,
                     ApprovalStatus: userData.Status
                 }
-                const token = await generateToken(payload);
 
+
+
+                const aT = await generateToken({ id: userData._id, Email: userData.Email}, process.env.JWT_SECRET, '20s');
+                const rT = await generateToken({ id: userData._id, Email: userData.Email}, process.env.JWT_REFRESH_SECRET, '1d');
+
+                userData.refreshToken = rT; 
+                await userData.save();
+
+                res.cookie('jwt', rT, { httpOnly: true, secure: false, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
+                
                 return res.status(201).json({
                     message: 'User Logged in!',
-                    token: token,
+                    accessToken: aT,
+                    refreshToken: rT,
                     data: payload
                 });
+                
                 
 
             } else {
@@ -189,12 +257,15 @@ app.post('/register', async (req, res)=> {
             ApprovalStatus: userData.Status
         }
         
-        const token = await generateToken(payload);
+        const aT = await generateToken({Id: userData._id, Email: userData.Email}, process.env.JWT_SECRET, '20s');
+        const rT = await generateToken({Id: userData._id, Email: userData.Email}, process.env.JWT_REFRESH_SECRET, '1d');
 
-
+        res.cookie('jwt', rT, { httpOnly: true, secure: false, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
+        
         return res.status(201).json({
                 message: 'User Registered!',
-                token:token,
+                accessToken:aT,
+                refreshToken:rT,
                 data: payload
         });
         
@@ -206,6 +277,8 @@ app.post('/register', async (req, res)=> {
             });
    }
 });
+
+app.use('/', researchRoutes);
 
 const server = app.listen(process.env.PORT, () => {
 

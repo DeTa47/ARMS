@@ -1,10 +1,15 @@
 import * as React from 'react';
 import { alpha } from '@mui/material/styles';
+import AddDate from '../components/AddDate';
+import AddIcon from '@mui/icons-material/Add';
+//import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
+import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -12,6 +17,7 @@ import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
+import SaveIcon from '@mui/icons-material/Save';
 import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import Table from '@mui/material/Table';
@@ -25,13 +31,14 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import AddIcon from '@mui/icons-material/Add';
+import UploadFile from '../components/UploadFile';
+
 
 import { useState, useEffect } from 'react';
 
 import { visuallyHidden } from '@mui/utils';
+
+
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -69,7 +76,9 @@ function EnhancedTableHead(props) {
             }}
           />
         </TableCell>
-        {headCells.map((headCell) => (
+        {
+         headCells.map((headCell) => (
+          headCell.id !== '_id' && (
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}
@@ -89,7 +98,7 @@ function EnhancedTableHead(props) {
               ) : null}
             </TableSortLabel>
           </TableCell>
-        ))}
+        )))}
         <TableCell align="right">Actions</TableCell>
       </TableRow>
     </TableHead>
@@ -137,7 +146,7 @@ function EnhancedTableToolbar({numSelected, selectedRoute, setSelectedRoute, rou
           id="tableTitle"
           component="div"
         >
-          {selectedRoute}
+          {selectedRoute.tableName}
         </Typography>
         
       )}
@@ -152,7 +161,7 @@ function EnhancedTableToolbar({numSelected, selectedRoute, setSelectedRoute, rou
       >
         <MenuItem value={""}>None</MenuItem>
         {routesArray?.map((route, index)=>{
-          return <MenuItem key={index} value={route}>{route}</MenuItem>
+          return <MenuItem key={index} value={route}>{route.tableName}</MenuItem>
         })}
         </Select>
       </FormControl>
@@ -178,6 +187,7 @@ EnhancedTableToolbar.propTypes = {
 };
 
 export default function EnhancedTable({ selectOptions, auth }) {
+  //const axios = useAxiosPrivate();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('');
   const [selected, setSelected] = React.useState([]);
@@ -189,27 +199,36 @@ export default function EnhancedTable({ selectOptions, auth }) {
   const [selectedRoute, setSelectedRoute] = useState("");
   const [editRowId, setEditRowId] = useState(null);
   const [editRowData, setEditRowData] = useState({});
-  console.log(auth.data);
+  const [saveAction, setSaveAction] = useState('');
+  
   useEffect(() => {
     getData();
   }, [selectedRoute]);
 
   const createData = async () => {
-    axios.post(`http://localhost:8000/${selectedRoute}`, {
-      data: rows
+    axios.post(`http://localhost:8000/${selectedRoute.route}`, {
+      data: editRowData
     })
       .then((res) => {
         console.log(res);
+        const idToBeEdited = editRowId;
+        rows.find(row => row._id === idToBeEdited)._id = res.data._id;
+        setEditRowId(res.data._id);
+        setRows(rows.map(row => (row._id === editRowId ? editRowData : row)));
+        setSaveAction('');
+        setEditRowId(null);
       });
   }
   const getData = async () => {
-    const resource = selectedRoute.slice(1, selectedRoute.length);
-    console.log(resource);
-    axios.post(`http://localhost:8000/get${resource}`, {
+    
+    axios.post(`http://localhost:8000/get${selectedRoute.route}`, {
       userId: auth.data.id
-    })
-      .then((res) => {
+    }, {headers:{
+      'Content-Type': 'application/json'
+    }}).then((res) => {
+        
         setRows(res.data);
+        
         if (res.data.length > 0) {
           const keys = Object.keys(res.data[0]);
           const headCells = keys.map(key => ({
@@ -227,23 +246,21 @@ export default function EnhancedTable({ selectOptions, auth }) {
   }
 
   const updateData = async () => {
-    axios.patch(`http://localhost:8000/${selectedRoute}`, {
+   
+    axios.patch(`http://localhost:8000/${selectedRoute.route}`, {
       id: editRowId,
       data: editRowData
     })
       .then((res) => {
-        console.log(res);
         setRows(rows.map(row => (row._id === editRowId ? editRowData : row)));
         setEditRowId(null);
+        setSaveAction('');
       })
   }
 
   const deleteData = async (id) => {
-    axios.delete(`http://localhost:8000/${selectedRoute}`, {
-      data: { id }
-    })
+    axios.delete(`http://localhost:8000/${selectedRoute.route}`, { data: { documentId: id }})
       .then((res) => {
-        console.log(res);
         setRows(rows.filter(row => row._id !== id));
       })
       .catch((err) => {
@@ -256,6 +273,13 @@ export default function EnhancedTable({ selectOptions, auth }) {
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
+
+  const cancelEdit = () => {
+    if (setEditRowId != null) {
+      setEditRowId(null);
+      setSaveAction('');
+    }
+  }
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -299,16 +323,24 @@ export default function EnhancedTable({ selectOptions, auth }) {
   };
 
   const handleEditClick = (row) => {
+    setSaveAction('Update');
     setEditRowId(row._id);
     setEditRowData(row);
   };
 
   const handleSaveClick = () => {
-    updateData();
+    saveAction ==='Update'?updateData():createData();
   };
 
-  const handleInputChange = (e, key) => {
-    setEditRowData({ ...editRowData, [key]: e.target.value });
+  const handleInputChange = (e, key, rowid) => {
+    setEditRowId(rowid);
+    if (!key.includes('Document')) {
+      setEditRowData({ ...editRowData, [key]: e.target.value })
+    }
+    else {
+      setEditRowData({ ...editRowData, [key]: e })
+      console.log('Cell data', e, key);
+    }
   };
 
   const handleAddRow = () => {
@@ -316,10 +348,15 @@ export default function EnhancedTable({ selectOptions, auth }) {
       acc[cell.id] = '';
       return acc;
     }, {});
-    newRow._id = `new-${Date.now()}`;
+    newRow._id = `temp-${Date.now()}`; // Temporary ID for the new row
+    console.log('New Row id',newRow._id);
+    newRow.user = auth.data.id;
     setRows([...rows, newRow]);
     setEditRowId(newRow._id);
+    console.log('EditRowId',editRowId,'Rows',rows);
     setEditRowData(newRow);
+    setSaveAction('Create');
+    console.log('Save Action', saveAction);
   };
 
   const handleDeleteClick = (id) => {
@@ -359,62 +396,76 @@ export default function EnhancedTable({ selectOptions, auth }) {
             />
             <TableBody>
               {visibleRows.map((row, index) => {
+                
                 const isItemSelected = selected.includes(row._id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
                   <TableRow
                     hover
-                    onClick={(event) => handleClick(event, row._id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
                     key={row._id}
                     selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
+                    //sx={{ cursor: 'pointer' }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
+                        onClick={(event) => handleClick(event, row._id)}
                         checked={isItemSelected}
                         inputProps={{
                           'aria-labelledby': labelId,
                         }}
                       />
                     </TableCell>
-                    {headCells.map((cell) => 
-                  
-                    
-                    
-                    
-                    
-                    
-                    (
-                      <TableCell key={cell.id} align={cell.numeric ? 'right' : 'left'}>
-                        {editRowId === row._id ? (
-                          <input
-                            type="text"
-                            value={editRowData[cell.id]}
-                            onChange={(e) => handleInputChange(e, cell.id)}
-                          />
-                        ) : (
-                          row[cell.id]
-                        )}
-                      </TableCell>
-                    ))}
+                    {
+                    headCells.map((cell) =>
+                      cell.id !== '_id' && (
+                        
+                        <TableCell key={cell.id} align={cell.numeric ? 'right' : 'left'}>
+                          {editRowId === row._id && (!cell.id.includes('Document')) ? (
+                            <input
+                              type="text"
+                              value={editRowData[cell.id]}
+                              onChange={(e) => handleInputChange(e, cell.id, row._id)}
+                            />
+                          ) : (editRowId === row._id && (cell.id.includes('Document')) ? ( 
+                              <UploadFile Accept={'image/*,.pdf, .docx, .xlsx'} Id={"Upload Document"} Name={"Upload Document"} handlenputChange={handleInputChange} cellId={cell.id} rowId={row._id}/>
+                          ): 
+                          
+                          editRowId === row._id && (cell.id.includes('Date')) ? 
+                          (
+                           <>
+                            <AddDate cellId={cell.id} rowId={row._id} handleinputChange={handleInputChange}>
+                            
+                            </AddDate>
+                            </>) : row[cell.id])}
+                        </TableCell>
+                      )
+                    )}
                     <TableCell align="right">
                       {editRowId === row._id ? (
-                        <IconButton onClick={handleSaveClick}>
-                          <SaveIcon />
-                        </IconButton>
+                        <>
+                          <IconButton label="Save changes" onClick={()=>handleSaveClick()}>
+                            <SaveIcon />
+                          </IconButton>
+                          
+                          <IconButton label="Cancel changes" onClick={cancelEdit}>
+                            <ClearIcon />
+                          </IconButton>
+                        </>
                       ) : (
-                        <IconButton onClick={() => handleEditClick(row)}>
+                        <IconButton label="Edit row data" onClick={() => handleEditClick(row)}>
                           <EditIcon />
                         </IconButton>
                       )}
-                      <IconButton onClick={() => handleDeleteClick(row._id)}>
+                      <IconButton label="Delete selected row" onClick={() => handleDeleteClick(row._id)}>
                         <DeleteIcon />
                       </IconButton>
+
+                      
                     </TableCell>
                   </TableRow>
                 );
@@ -441,7 +492,7 @@ export default function EnhancedTable({ selectOptions, auth }) {
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
       />
-      <IconButton onClick={handleAddRow}>
+      <IconButton label="Add Data" onClick={handleAddRow}>
         <AddIcon />
       </IconButton>
     </Box>

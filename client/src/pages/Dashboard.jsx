@@ -1,4 +1,4 @@
-import axios from 'axios';
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import Box from '@mui/material/Box';
 import EnhancedTable from "../components/DataTable";
 import MiniDrawer from "../components/MiniDrawer"; 
@@ -10,6 +10,7 @@ export default function Dashboard() {
     const [selectOptions, setSelectOptions] = useState([]);
     const [datachanger, setDatachanger] = useState({});
     const {auth} = useAuth();
+    const axios = useAxiosPrivate();
 
     console.log(`auth`, auth);
 

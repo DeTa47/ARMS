@@ -1,6 +1,6 @@
 const AcademicResearchVisit = require('../schema/ResearchAndConsultancy/AcademicResearchVisit');
 const Collaborations = require('../schema/ResearchAndConsultancy/Collaborations');
-const ConsultancyDetails = require('../schema/ResearchAndConsultancy/ConsultancyDetails');
+const ConsultancyDetails = require('../schema/ResearchAndConsultancy/ConsultancyDetails.js');
 const Copyrights = require('../schema/ResearchAndConsultancy/Copyrights');
 const EContent = require('../schema/ResearchAndConsultancy/EContent');
 const FinancialSupport = require('../schema/ResearchAndConsultancy/FinancialSupport');
@@ -14,7 +14,9 @@ const Consultancy = require('../schema/ResearchAndConsultancy/Consultancy');
 // Create a new academic research visit
 exports.createAcademicResearchVisit = async (req, res) => {
   try {
-    const newVisit = new AcademicResearchVisit(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newVisit = new AcademicResearchVisit(data);
     const savedVisit = await newVisit.save();
     res.status(201).json(savedVisit);
   } catch (error) {
@@ -26,7 +28,23 @@ exports.createAcademicResearchVisit = async (req, res) => {
 exports.getAcademicResearchVisitsByUserId = async (req, res) => {
   try {
     const visits = await AcademicResearchVisit.find({ user: req.body.userId });
-    res.status(200).json(visits);
+    if (visits.length === 0) {
+      const schemaKeys = Object.keys(AcademicResearchVisit.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = visits.map(visit => {
+      visit = visit.toObject();
+      delete visit.user;
+      delete visit.__v;
+      return visit;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -35,7 +53,7 @@ exports.getAcademicResearchVisitsByUserId = async (req, res) => {
 // Update an academic research visit
 exports.updateAcademicResearchVisit = async (req, res) => {
   try {
-    const updatedVisit = await AcademicResearchVisit.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedVisit = await AcademicResearchVisit.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedVisit);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -45,7 +63,7 @@ exports.updateAcademicResearchVisit = async (req, res) => {
 // Delete an academic research visit
 exports.deleteAcademicResearchVisit = async (req, res) => {
   try {
-    await AcademicResearchVisit.findByIdAndDelete(req.params.id);
+    await AcademicResearchVisit.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -55,7 +73,9 @@ exports.deleteAcademicResearchVisit = async (req, res) => {
 
 exports.createCollaboration = async (req, res) => {
   try {
-    const newCollaboration = new Collaborations(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newCollaboration = new Collaborations(data);
     const savedCollaboration = await newCollaboration.save();
     res.status(201).json(savedCollaboration);
   } catch (error) {
@@ -67,7 +87,23 @@ exports.createCollaboration = async (req, res) => {
 exports.getCollaborationsByUserId = async (req, res) => {
   try {
     const collaborations = await Collaborations.find({ user: req.body.userId });
-    res.status(200).json(collaborations);
+    if (collaborations.length === 0) {
+      const schemaKeys = Object.keys(Collaborations.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = collaborations.map(collaboration => {
+      collaboration = collaboration.toObject();
+      delete collaboration.user;
+      delete collaboration.__v;
+      return collaboration;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -76,7 +112,7 @@ exports.getCollaborationsByUserId = async (req, res) => {
 // Update a collaboration
 exports.updateCollaboration = async (req, res) => {
   try {
-    const updatedCollaboration = await Collaborations.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedCollaboration = await Collaborations.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedCollaboration);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -86,7 +122,7 @@ exports.updateCollaboration = async (req, res) => {
 // Delete a collaboration
 exports.deleteCollaboration = async (req, res) => {
   try {
-    await Collaborations.findByIdAndDelete(req.params.id);
+    await Collaborations.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -96,7 +132,9 @@ exports.deleteCollaboration = async (req, res) => {
 // AcademicResearchVisit Controllers
 exports.createAcademicResearchVisit = async (req, res) => {
   try {
-    const newVisit = new AcademicResearchVisit(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newVisit = new AcademicResearchVisit(data);
     const savedVisit = await newVisit.save();
     res.status(201).json(savedVisit);
   } catch (error) {
@@ -107,7 +145,23 @@ exports.createAcademicResearchVisit = async (req, res) => {
 exports.getAcademicResearchVisitsByUserId = async (req, res) => {
   try {
     const visits = await AcademicResearchVisit.find({ user: req.body.userId });
-    res.status(200).json(visits);
+    if (visits.length === 0) {
+      const schemaKeys = Object.keys(AcademicResearchVisit.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = visits.map(visit => {
+      visit = visit.toObject();
+      delete visit.user;
+      delete visit.__v;
+      return visit;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -115,7 +169,7 @@ exports.getAcademicResearchVisitsByUserId = async (req, res) => {
 
 exports.updateAcademicResearchVisit = async (req, res) => {
   try {
-    const updatedVisit = await AcademicResearchVisit.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedVisit = await AcademicResearchVisit.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedVisit);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -124,7 +178,7 @@ exports.updateAcademicResearchVisit = async (req, res) => {
 
 exports.deleteAcademicResearchVisit = async (req, res) => {
   try {
-    await AcademicResearchVisit.findByIdAndDelete(req.params.id);
+    await AcademicResearchVisit.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -134,7 +188,9 @@ exports.deleteAcademicResearchVisit = async (req, res) => {
 // Collaborations Controllers
 exports.createCollaboration = async (req, res) => {
   try {
-    const newCollaboration = new Collaborations(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newCollaboration = new Collaborations(data);
     const savedCollaboration = await newCollaboration.save();
     res.status(201).json(savedCollaboration);
   } catch (error) {
@@ -145,7 +201,23 @@ exports.createCollaboration = async (req, res) => {
 exports.getCollaborationsByUserId = async (req, res) => {
   try {
     const collaborations = await Collaborations.find({ user: req.body.userId });
-    res.status(200).json(collaborations);
+    if (collaborations.length === 0) {
+      const schemaKeys = Object.keys(Collaborations.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = collaborations.map(collaboration => {
+      collaboration = collaboration.toObject();
+      delete collaboration.user;
+      delete collaboration.__v;
+      return collaboration;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -153,7 +225,7 @@ exports.getCollaborationsByUserId = async (req, res) => {
 
 exports.updateCollaboration = async (req, res) => {
   try {
-    const updatedCollaboration = await Collaborations.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedCollaboration = await Collaborations.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedCollaboration);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -162,7 +234,7 @@ exports.updateCollaboration = async (req, res) => {
 
 exports.deleteCollaboration = async (req, res) => {
   try {
-    await Collaborations.findByIdAndDelete(req.params.id);
+    await Collaborations.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -172,8 +244,11 @@ exports.deleteCollaboration = async (req, res) => {
 // ConsultancyDetails Controllers
 exports.createConsultancyDetail = async (req, res) => {
   try {
-    const newDetail = new ConsultancyDetails(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newDetail = new ConsultancyDetails(req.body.data);
     const savedDetail = await newDetail.save();
+    
     res.status(201).json(savedDetail);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -182,8 +257,27 @@ exports.createConsultancyDetail = async (req, res) => {
 
 exports.getConsultancyDetailsByUserId = async (req, res) => {
   try {
+    
     const details = await ConsultancyDetails.find({ user: req.body.userId });
-    res.status(200).json(details);
+    
+    if (details.length === 0) {
+      const schemaKeys = Object.keys(ConsultancyDetails.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+
+    const responseData = details.map(detail => {
+      detail = detail.toObject();
+      delete detail.user;
+      delete detail.__v;
+      return detail;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -191,7 +285,9 @@ exports.getConsultancyDetailsByUserId = async (req, res) => {
 
 exports.updateConsultancyDetail = async (req, res) => {
   try {
-    const updatedDetail = await ConsultancyDetails.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    const updatedDetail = await ConsultancyDetails.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
+    
     res.status(200).json(updatedDetail);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -200,7 +296,8 @@ exports.updateConsultancyDetail = async (req, res) => {
 
 exports.deleteConsultancyDetail = async (req, res) => {
   try {
-    await ConsultancyDetails.findByIdAndDelete(req.params.id);
+    
+    await ConsultancyDetails.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -210,7 +307,9 @@ exports.deleteConsultancyDetail = async (req, res) => {
 // Copyrights Controllers
 exports.createCopyright = async (req, res) => {
   try {
-    const newCopyright = new Copyrights(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newCopyright = new Copyrights(data);
     const savedCopyright = await newCopyright.save();
     res.status(201).json(savedCopyright);
   } catch (error) {
@@ -221,7 +320,23 @@ exports.createCopyright = async (req, res) => {
 exports.getCopyrightsByUserId = async (req, res) => {
   try {
     const copyrights = await Copyrights.find({ user: req.body.userId });
-    res.status(200).json(copyrights);
+    if (copyrights.length === 0) {
+      const schemaKeys = Object.keys(Copyrights.schema.paths); 
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {}); 
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = copyrights.map(copyright => {
+      copyright = copyright.toObject();
+      delete copyright.user;
+      delete copyright.__v;
+      return copyright;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -229,7 +344,7 @@ exports.getCopyrightsByUserId = async (req, res) => {
 
 exports.updateCopyright = async (req, res) => {
   try {
-    const updatedCopyright = await Copyrights.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedCopyright = await Copyrights.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedCopyright);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -238,7 +353,7 @@ exports.updateCopyright = async (req, res) => {
 
 exports.deleteCopyright = async (req, res) => {
   try {
-    await Copyrights.findByIdAndDelete(req.params.id);
+    await Copyrights.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -248,7 +363,9 @@ exports.deleteCopyright = async (req, res) => {
 // EContent Controllers
 exports.createEContent = async (req, res) => {
   try {
-    const newEContent = new EContent(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newEContent = new EContent(data);
     const savedEContent = await newEContent.save();
     res.status(201).json(savedEContent);
   } catch (error) {
@@ -259,7 +376,23 @@ exports.createEContent = async (req, res) => {
 exports.getEContentsByUserId = async (req, res) => {
   try {
     const eContents = await EContent.find({ user: req.body.userId });
-    res.status(200).json(eContents);
+    if (eContents.length === 0) {
+      const schemaKeys = Object.keys(EContent.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = eContents.map(eContent => {
+      eContent = eContent.toObject();
+      delete eContent.user;
+      delete eContent.__v;
+      return eContent;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -267,7 +400,7 @@ exports.getEContentsByUserId = async (req, res) => {
 
 exports.updateEContent = async (req, res) => {
   try {
-    const updatedEContent = await EContent.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedEContent = await EContent.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedEContent);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -276,7 +409,7 @@ exports.updateEContent = async (req, res) => {
 
 exports.deleteEContent = async (req, res) => {
   try {
-    await EContent.findByIdAndDelete(req.params.id);
+    await EContent.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -286,7 +419,9 @@ exports.deleteEContent = async (req, res) => {
 // FinancialSupport Controllers
 exports.createFinancialSupport = async (req, res) => {
   try {
-    const newSupport = new FinancialSupport(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newSupport = new FinancialSupport(data);
     const savedSupport = await newSupport.save();
     res.status(201).json(savedSupport);
   } catch (error) {
@@ -297,7 +432,23 @@ exports.createFinancialSupport = async (req, res) => {
 exports.getFinancialSupportsByUserId = async (req, res) => {
   try {
     const supports = await FinancialSupport.find({ user: req.body.userId });
-    res.status(200).json(supports);
+    if (supports.length === 0) {
+      const schemaKeys = Object.keys(FinancialSupport.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = supports.map(support => {
+      support = support.toObject();
+      delete support.user;
+      delete support.__v;
+      return support;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -305,7 +456,7 @@ exports.getFinancialSupportsByUserId = async (req, res) => {
 
 exports.updateFinancialSupport = async (req, res) => {
   try {
-    const updatedSupport = await FinancialSupport.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedSupport = await FinancialSupport.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedSupport);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -314,7 +465,7 @@ exports.updateFinancialSupport = async (req, res) => {
 
 exports.deleteFinancialSupport = async (req, res) => {
   try {
-    await FinancialSupport.findByIdAndDelete(req.params.id);
+    await FinancialSupport.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -324,7 +475,9 @@ exports.deleteFinancialSupport = async (req, res) => {
 // JRFSRFDetails Controllers
 exports.createJRFSRFDetail = async (req, res) => {
   try {
-    const newDetail = new JRFSRFDetails(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newDetail = new JRFSRFDetails(data);
     const savedDetail = await newDetail.save();
     res.status(201).json(savedDetail);
   } catch (error) {
@@ -335,7 +488,23 @@ exports.createJRFSRFDetail = async (req, res) => {
 exports.getJRFSRFDetailsByUserId = async (req, res) => {
   try {
     const details = await JRFSRFDetails.find({ user: req.body.userId });
-    res.status(200).json(details);
+    if (details.length === 0) {
+      const schemaKeys = Object.keys(JRFSRFDetails.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = details.map(detail => {
+      detail = detail.toObject();
+      delete detail.user;
+      delete detail.__v;
+      return detail;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -343,7 +512,7 @@ exports.getJRFSRFDetailsByUserId = async (req, res) => {
 
 exports.updateJRFSRFDetail = async (req, res) => {
   try {
-    const updatedDetail = await JRFSRFDetails.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedDetail = await JRFSRFDetails.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedDetail);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -352,7 +521,7 @@ exports.updateJRFSRFDetail = async (req, res) => {
 
 exports.deleteJRFSRFDetail = async (req, res) => {
   try {
-    await JRFSRFDetails.findByIdAndDelete(req.params.id);
+    await JRFSRFDetails.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -362,7 +531,9 @@ exports.deleteJRFSRFDetail = async (req, res) => {
 // PhDGuidance Controllers
 exports.createPhDGuidance = async (req, res) => {
   try {
-    const newGuidance = new PhDGuidance(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newGuidance = new PhDGuidance(data);
     const savedGuidance = await newGuidance.save();
     res.status(201).json(savedGuidance);
   } catch (error) {
@@ -373,7 +544,23 @@ exports.createPhDGuidance = async (req, res) => {
 exports.getPhDGuidancesByUserId = async (req, res) => {
   try {
     const guidances = await PhDGuidance.find({ user: req.body.userId });
-    res.status(200).json(guidances);
+    if (guidances.length === 0) {
+      const schemaKeys = Object.keys(PhDGuidance.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = guidances.map(guidance => {
+      guidance = guidance.toObject();
+      delete guidance.user;
+      delete guidance.__v;
+      return guidance;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -381,7 +568,7 @@ exports.getPhDGuidancesByUserId = async (req, res) => {
 
 exports.updatePhDGuidance = async (req, res) => {
   try {
-    const updatedGuidance = await PhDGuidance.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedGuidance = await PhDGuidance.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedGuidance);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -390,7 +577,7 @@ exports.updatePhDGuidance = async (req, res) => {
 
 exports.deletePhDGuidance = async (req, res) => {
   try {
-    await PhDGuidance.findByIdAndDelete(req.params.id);
+    await PhDGuidance.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -400,7 +587,9 @@ exports.deletePhDGuidance = async (req, res) => {
 // PolicyDocument Controllers
 exports.createPolicyDocument = async (req, res) => {
   try {
-    const newDocument = new PolicyDocument(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newDocument = new PolicyDocument(data);
     const savedDocument = await newDocument.save();
     res.status(201).json(savedDocument);
   } catch (error) {
@@ -411,7 +600,23 @@ exports.createPolicyDocument = async (req, res) => {
 exports.getPolicyDocumentsByUserId = async (req, res) => {
   try {
     const documents = await PolicyDocument.find({ user: req.body.userId });
-    res.status(200).json(documents);
+    if (documents.length === 0) {
+      const schemaKeys = Object.keys(PolicyDocument.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = documents.map(document => {
+      document = document.toObject();
+      delete document.user;
+      delete document.__v;
+      return document;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -419,7 +624,7 @@ exports.getPolicyDocumentsByUserId = async (req, res) => {
 
 exports.updatePolicyDocument = async (req, res) => {
   try {
-    const updatedDocument = await PolicyDocument.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedDocument = await PolicyDocument.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedDocument);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -428,7 +633,7 @@ exports.updatePolicyDocument = async (req, res) => {
 
 exports.deletePolicyDocument = async (req, res) => {
   try {
-    await PolicyDocument.findByIdAndDelete(req.params.id);
+    await PolicyDocument.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -438,7 +643,9 @@ exports.deletePolicyDocument = async (req, res) => {
 // ResearchProject Controllers
 exports.createResearchProject = async (req, res) => {
   try {
-    const newProject = new ResearchProject(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newProject = new ResearchProject(data);
     const savedProject = await newProject.save();
     res.status(201).json(savedProject);
   } catch (error) {
@@ -449,7 +656,23 @@ exports.createResearchProject = async (req, res) => {
 exports.getResearchProjectsByUserId = async (req, res) => {
   try {
     const projects = await ResearchProject.find({ user: req.body.userId });
-    res.status(200).json(projects);
+    if (projects.length === 0) {
+      const schemaKeys = Object.keys(ResearchProject.schema.paths);
+      const emptyObject = schemaKeys.reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+      delete emptyObject.user;
+      delete emptyObject.__v;
+      return res.status(200).json([emptyObject]);
+    }
+    const responseData = projects.map(project => {
+      project = project.toObject();
+      delete project.user;
+      delete project.__v;
+      return project;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -457,7 +680,7 @@ exports.getResearchProjectsByUserId = async (req, res) => {
 
 exports.updateResearchProject = async (req, res) => {
   try {
-    const updatedProject = await ResearchProject.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedProject = await ResearchProject.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
     res.status(200).json(updatedProject);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -466,17 +689,19 @@ exports.updateResearchProject = async (req, res) => {
 
 exports.deleteResearchProject = async (req, res) => {
   try {
-    await ResearchProject.findByIdAndDelete(req.params.id);
+    await ResearchProject.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-// Consultancy Controllers
+
 exports.createConsultancy = async (req, res) => {
   try {
-    const newConsultancy = new Consultancy(req.body);
+    const data = req.body.data;
+    delete data._id;
+    const newConsultancy = new Consultancy(data);
     const savedConsultancy = await newConsultancy.save();
     res.status(201).json(savedConsultancy);
   } catch (error) {
@@ -489,17 +714,23 @@ exports.getConsultanciesByUserId = async (req, res) => {
     const consultancies = await Consultancy.find({ user: req.body.userId });
 
     if (consultancies.length === 0) {
-      // Get schema keys from the Consultancy model
+      
       const schemaKeys = Object.keys(Consultancy.schema.paths);
       const emptyObject = schemaKeys.reduce((acc, key) => {
         acc[key] = "";
         return acc;
       }, {});
 
-      return res.status(200).json([emptyObject]); // Return as an array
+      return res.status(200).json([emptyObject]); 
     }
 
-    res.status(200).json(consultancies);
+    const responseData = consultancies.map(consultancy => {
+      consultancy = consultancy.toObject();
+      delete consultancy.user;
+      delete consultancy.__v;
+      return consultancy;
+    });
+    res.status(200).json(responseData);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -507,7 +738,7 @@ exports.getConsultanciesByUserId = async (req, res) => {
 
 exports.updateConsultancy = async (req, res) => {
   try {
-    const updatedConsultancy = await Consultancy.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedConsultancy = await Consultancy.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
 
     res.status(200).json(updatedConsultancy);
   } catch (error) {
@@ -517,7 +748,7 @@ exports.updateConsultancy = async (req, res) => {
 
 exports.deleteConsultancy = async (req, res) => {
   try {
-    await Consultancy.findByIdAndDelete(req.params.id);
+    await Consultancy.findByIdAndDelete(req.body.documentId);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ message: error.message });

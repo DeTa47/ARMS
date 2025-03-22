@@ -65,7 +65,8 @@ export default function LoginSignup() {
       }, {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials: true
       }).then((response) => {
         setAuth(response.data);
         if (response.data.CustomerType === "Admin") {
@@ -81,7 +82,8 @@ export default function LoginSignup() {
       }, {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials:true
       }).then((response) => {
         setAuth(response.data);
         if (response.data.CustomerType === "Admin") {

@@ -71,6 +71,11 @@ const UserDetailsSchema = new mongoose.Schema({
         enum:["Pending","Approved","Rejected"]
     },
 
+
+    refreshToken: {
+        type: String
+    },
+
     RemarkForRejection: String,
 
     ApprovedOn: Date
