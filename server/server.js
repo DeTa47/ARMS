@@ -18,6 +18,8 @@ const awardsAndPerformaceRoutes = require('./routes/awardsAndPerformanceRoutes')
 const booksAndPapersRoutes = require('./routes/booksAndPapersRoutes');
 const talkRoutes = require('./routes/talksRoutes');
 const oeisRoutes = require('./routes/OEISRoutes');
+const educationRoutes = require('./routes/EducationExperienceRoutes');
+const cvRoutes = require('./routes/cvRoute');
 
 //const verifyJWT = require('./middleware/verifyToken');
 //const cvgen = require('./utils/CVGenerator');
@@ -34,19 +36,6 @@ app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
-app.post('/generateCV', async (req, res)=>{
-
-    try{
-        const userId = req.body.userId;
-        const outputPath = req.body.outputPath;
-        cvgen.generateConsultancyPDF(userId, outputPath);
-        res.status(200).send('CV Generated!');
-    }
-    catch(error){
-        console.error(error);
-    }
-});
-
 
 app.use('/', loginSignUpRoutes);
 app.use('/',emailVerificationRoutes);
@@ -57,6 +46,8 @@ app.use('/',awardsAndPerformaceRoutes);
 app.use('/',booksAndPapersRoutes);
 app.use('/',talkRoutes);
 app.use('/',oeisRoutes);
+app.use('/',educationRoutes);
+app.use('/',cvRoutes);
 
 const server = app.listen(process.env.PORT, () => {
 

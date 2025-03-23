@@ -8,9 +8,11 @@ const OrganizationSchema = new mongoose.Schema({
 });
 
 const IndividualSchema = new mongoose.Schema({
+    Salutation: {type: String},
     IndividualName: {type: String},
     IndividualAddress: {type: String},
     IndividualCity: {type: String},
+    
 });
 
 const AdminSchema = new mongoose.Schema({
