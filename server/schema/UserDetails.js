@@ -12,7 +12,24 @@ const IndividualSchema = new mongoose.Schema({
     IndividualName: {type: String},
     IndividualAddress: {type: String},
     IndividualCity: {type: String},
-    
+    IndividualProfilePicture: {type: String},
+    IndividualSalutation: {type: String},
+    IndividualMobile: {type: String},
+    IndividualDesignation: {type: String},
+    IndividualFaculty: {type: String},
+    IndividualDepartment: {type: String},
+    IndividualGATEQualified: {type: String},
+    IndividualJoiningDate: {type: String},
+    IndividualPanNo: {type: String},
+    RegisteredGuideatMSU: {type: String},
+    YearOfRegistration: {type: Number},
+    IndividualHIndex: {type: String},
+    IndividualI10Index: {type: String},
+    IndividualCitations: {type: String},
+    IndividualOrchidID:{type: String},
+    IndividualResearcherID:{type: String},
+    IndividualICTTeaching: {type: Array},
+
 });
 
 const AdminSchema = new mongoose.Schema({
