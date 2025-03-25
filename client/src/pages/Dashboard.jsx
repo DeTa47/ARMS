@@ -45,7 +45,9 @@ export default function Dashboard() {
             
             <Box component="main" sx={{ flexGrow: 1, p: 3, overflowX: 'auto' }}>
                 {(componentChanger === 'Profile') ? 
-                    <></>
+                    <>
+                    <UserProfile/>
+                    </>
                     :(componentChanger === 'Generate CV')? (<CVGenerator auth={auth} selectOptions={selectOptions}></CVGenerator>):
 
                     <EnhancedTable auth={auth} selectOptions={datachanger} />
