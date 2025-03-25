@@ -4,9 +4,7 @@ import useRefreshToken from "./useRefreshToken";
 import useAuth from "./useAuth";
 
 const useAxiosPrivate = () => {
-    console.log('Intercepted')
     const refresh = useRefreshToken();
-    console.log('After refresh')
     const { auth } = useAuth();
 
     useEffect(() => {

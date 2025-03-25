@@ -5,6 +5,7 @@ import MiniDrawer from "../components/MiniDrawer";
 import CVGenerator from "../components/CVGenerator";
 import useAuth from '../hooks/useAuth'; 
 import { useState, useEffect } from 'react';
+import UserProfile from './UserProfile';
 
 export default function Dashboard() {
     const [open, setOpen] = useState(false);
@@ -16,11 +17,16 @@ export default function Dashboard() {
     const axios = useAxiosPrivate();
 
     useEffect(() => {
+        console.log(`datachanger`, datachanger);
+    }, [datachanger]);
+
+
+    useEffect(() => {
         axios.get('http://localhost:8000/getGroups')
             .then(response => {
                 setSelectOptions(response.data);
             })
-            .catch(error => {
+            .catch(error => {   
                 console.error('Error fetching select options:', error); 
             });
     }, []);
@@ -32,7 +38,9 @@ export default function Dashboard() {
 
 
     return (
+        <>
         <Box sx={{ display: 'flex', height: 'calc(100vh)' }}>
+
             <MiniDrawer selectOptions={selectOptions[0]?.groupName} componentChanger={setComponentChanger} datachanger={setDatachanger} open={open} toggleDrawer={toggleDrawer} />
             
             <Box component="main" sx={{ flexGrow: 1, p: 3, overflowX: 'auto' }}>
@@ -44,5 +52,6 @@ export default function Dashboard() {
                 }
             </Box>
         </Box>
+        </>
     );
 }
