@@ -1,6 +1,7 @@
 node_modules/
 /node_modules
-/output
+output/
+output/*.pdf
 /.pnp
 .pnp.js
 .DS_Store
