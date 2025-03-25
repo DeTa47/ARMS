@@ -20,6 +20,7 @@ const talkRoutes = require('./routes/talksRoutes');
 const oeisRoutes = require('./routes/OEISRoutes');
 const educationRoutes = require('./routes/EducationExperienceRoutes');
 const cvRoutes = require('./routes/cvRoute');
+const userDetailsRoutes = require('./routes/userDetailsRoutes');
 
 //const verifyJWT = require('./middleware/verifyToken');
 //const cvgen = require('./utils/CVGenerator');
@@ -48,6 +49,7 @@ app.use('/',talkRoutes);
 app.use('/',oeisRoutes);
 app.use('/',educationRoutes);
 app.use('/',cvRoutes);
+app.use('/', userDetailsRoutes);
 
 const server = app.listen(process.env.PORT, () => {
 

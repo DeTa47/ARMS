@@ -19,7 +19,7 @@ const publishedArticlesSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  type: {
+  editedType: {
     type: String
   },
   isbn: {
@@ -28,7 +28,7 @@ const publishedArticlesSchema = new mongoose.Schema({
   issn: {
     type: String
   },
-  journalBookName: {
+  journalName: {
     type: String
   },
   volumeNo: {

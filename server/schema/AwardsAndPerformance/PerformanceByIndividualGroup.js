@@ -17,6 +17,9 @@ const performanceByIndividualGroupSchema = new mongoose.Schema({
   supportingDocument: {
     type: String // Assuming this is a file path or URL
   },
+  date:{
+    type: Date,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserDetails'

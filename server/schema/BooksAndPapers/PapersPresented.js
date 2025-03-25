@@ -9,7 +9,7 @@ const papersPresentedSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  presentationLevel: {
+  level: {
     type: String
   },
   theme: {

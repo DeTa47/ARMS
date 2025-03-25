@@ -11,7 +11,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
-const drawerWidth = 240;
+const drawerWidth = 340;
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -76,14 +76,10 @@ const StyledButton = styled(Button)(({ theme, active }) => ({
   },
 }));
 
-export default function MiniDrawer({ selectOptions, datachanger }) {
+export default function MiniDrawer({ selectOptions, datachanger, componentChanger }) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const [activeOption, setActiveOption] = useState(null);
-
-  const handleClick = (optionId) => {
-    setActiveOption(optionId);
-  };
+  const [activeOption, setActiveOption] = useState('Profile');
 
   const toggleDrawer = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -102,15 +98,33 @@ export default function MiniDrawer({ selectOptions, datachanger }) {
             {open ? (theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />) : <MenuIcon />}
           </IconButton>
         </DrawerHeader>
+        {open ? <StyledButton 
+          key={"Profile"}
+          {...(activeOption === "Profile" && { active: "true" })}
+          onClick = {()=>{setActiveOption("Profile"); componentChanger('Profile');}}>
+          <Typography>
+            {"Profile"}
+          </Typography>  
+        </StyledButton> : null}
         {open ? selectOptions?.map((option) => (
+          <>
           <StyledButton
             key={option._id}
             {...(activeOption === option._id && { active: "true" })}
-            onClick={() => { handleClick(option._id); console.log(`option`, option.routes); datachanger(option); }}
+            onClick={() => { setActiveOption(option._id); console.log(`option`, option.routes); datachanger(option); componentChanger(null)}}
           >
             <Typography>{option.name}</Typography>
           </StyledButton>
+          </>
         )) : null}
+       {open ? <StyledButton 
+          key={"Generate CV"}
+          {...(activeOption === "Generate CV" && { active: "true" })}
+          onClick = {()=>{setActiveOption("Generate CV"); componentChanger('Generate CV');}}>
+          <Typography>
+            {"Generate CV"}
+          </Typography>  
+        </StyledButton> : null}
       </Drawer>
     </Box>
   );
