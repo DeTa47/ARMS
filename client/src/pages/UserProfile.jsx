@@ -41,7 +41,7 @@ const UserProfile = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center pt-5 bg-gray-100 w-full">
+    <div className="flex flex-col items-center pt-5 bg-gray-100 w-full h-full">
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">User Profile</h1>
         {isEditing ? (
