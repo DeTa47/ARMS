@@ -96,7 +96,7 @@ export default function EmailSent(){
                     }
                 
                 } else {
-                    console.log('OTP not matching');
+                    
                     setNotMatchingError(true);
               }
                 
@@ -141,6 +141,7 @@ export default function EmailSent(){
                     classes="w-full sm:w-auto min-w-[120px] mt-6" 
                     onClick={sendMail} 
                     text="Send Code"
+                    type='OTP'
                 />
             </div>
         </div>
