@@ -1,57 +1,49 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const axios = require('axios');
-const path = require('path');
+const fs = require("fs");
+const PDFDocument = require("./PDFKitTables.js");
+// Load the patients 
+//const patients = require("./patients.json");
+function CVGenerator(data, outputDir){
 
-async function generateConsultancyPDF(userId, outputPath) {
-    try {
-        outputPath = outputPath || path.join(__dirname, '../output/cv.pdf');
-        userId = userId || "67bdceaa38f7237556547487";
 
-        
-        const outputDir = path.dirname(outputPath);
+        const keys = Object.keys(data);
+
+        const doc = new PDFDocument();
+        const imgBuffer = fs.readFileSync('c:/Users/devan/OneDrive/Documents/ARMS/server/assets/Msu_baroda_logo.png');      
+    
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
 
-       
-        const response = await axios.post('http://localhost:8000/getconsultancy-details', { userId });
-        const consultancyDetails = response.data;
+        doc.pipe(fs.createWriteStream(`${outputDir}/cv.pdf`));
 
-        if (!consultancyDetails.length) {
-            console.log('No consultancy details found.');
-            return;
+        // Add the header - https://pspdfkit.com/blog/2019/generate-invoices-pdfkit-node/
+        doc.fillColor("navy blue").text("Devansh Tataria").fontSize(12).font("Times-Roman")
+            .image(imgBuffer, 450, 45, {height:70, width: 70}).moveDown()
+            .moveDown()
+            .rect(50, doc.y+10, 500, 1).fill("navy blue").moveDown()
+            .text("Faculty: Faculty of Technology of Engineering",50,doc.y+10).fontSize(12)
+            .text("Department: Department of Computer Science & Engineering", 300, doc.y-20).fontSize(12).moveDown()
+            .text("Phone no.: 9586266142", 50, doc.y).fontSize(12)
+            .text("Designation: Professor(Direct Recruitment)", 300, doc.y).fontSize(12).moveDown()
+            .text("Email: devansh.tataria111@gmail.com", 50, doc.y).moveDown()
+            .rect(50, doc.y+10, 500, 1).fill("navy blue").moveDown();
+
+        // Create the table - https://www.andronio.me/2017/09/02/pdfkit-tables/
+        
+        for (const key of keys) {
+
+            const table = {
+                headers: Object.keys(data[key][0]),
+                rows: data[key].map(item => Object.values(item))
+            };
+            
+            console.log(table);
+
+            doc.text(key,50, doc.y+20).moveDown().rect(50, doc.y+10, 500, 1).table(table, 50, doc.y, { width: 150 });
         }
 
-        
-        const doc = new PDFDocument();
-        doc.pipe(fs.createWriteStream(outputPath));
-
-       
-        doc.fontSize(18).text('Consultancy Details', { align: 'center' });
-        doc.moveDown();
-
-        
-        const keys = Object.keys(consultancyDetails[0]);
-        keys.forEach((key, index) => {
-            doc.fontSize(12).text(key.charAt(0).toUpperCase() + key.slice(1), 50 + index * 150, doc.y, { continued: index < keys.length - 1 });
-        });
-        doc.moveDown();
-
-        
-        consultancyDetails.forEach((detail) => {
-            keys.forEach((key, index) => {
-                doc.text(detail[key], 50 + index * 150, doc.y, { continued: index < keys.length - 1 });
-            });
-            doc.moveDown();
-        });
-
-        // Finalize the PDF
+        // Finalize the PDF and end the stream
         doc.end();
-        console.log(`PDF generated at: ${outputPath}`);
-    } catch (error) {
-        console.error('Error generating PDF:', error.message);
-    }
 }
 
-module.exports = { generateConsultancyPDF };
+module.exports = {CVGenerator};

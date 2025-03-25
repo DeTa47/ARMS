@@ -14,8 +14,8 @@ const participationInCommitteesSchema = new mongoose.Schema({
   participatedAs: {
     type: String
   },
-  year: {
-    type: Number
+  date: {
+    type: Date
   },
   supportingDocument: {
     type: String // Assuming this is a file path or URL
