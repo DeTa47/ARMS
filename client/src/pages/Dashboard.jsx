@@ -40,8 +40,7 @@ export default function Dashboard() {
         <Box sx={{ display: 'flex', height: 'calc(100vh)' }}>
 
             <MiniDrawer selectOptions={selectOptions[0]?.groupName} componentChanger={setComponentChanger} datachanger={setDatachanger} open={open} toggleDrawer={toggleDrawer} />
-            
-            <MiniDrawer selectOptions={selectOptions[0]?.groupName} componentChanger={setComponentChanger} datachanger={setDatachanger} open={open} toggleDrawer={toggleDrawer} />
+        
             
             <Box component="main" sx={{ flexGrow: 1, p: 3, overflowX: 'auto' }}>
                 {(componentChanger === 'Profile') ? 

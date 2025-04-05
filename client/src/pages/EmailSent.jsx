@@ -131,7 +131,7 @@ export default function EmailSent(){
                 }
                 
                 <p className="mt-6 text-sm sm:text-base text-center px-4 max-w-md">
-                    An OTP has been sent to your registered email ID.
+                    Click on sen code. An OTP will be sent to your registered email ID.
                     Please enter the correct OTP to proceed further
                 </p>   
                 

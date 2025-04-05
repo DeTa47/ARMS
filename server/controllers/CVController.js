@@ -14,6 +14,7 @@ const schemas = {
     'Talks': require('../schema/Talks/AcademicResearchNature'),
 };
 const {CVGenerator} = require('../utils/CVGenerator');
+const fs = require('fs');
 
 function transformResults(results) {
     const keys = Object.keys(results);
@@ -21,7 +22,7 @@ function transformResults(results) {
     const requiredFields = {
         'Educational Details': ['degreeType', 'universiytName','state','yearOfPassing'], 
         'Experience': ['employer', 'currentlyEmployed','designation','dateOfJoining','dateOfRelieving','natureOfJob'], 
-        'Research Detail': ['Title', 'funding_agency', 'Project_Nature', 'Project_Level', 'Project_Duration'], 
+        'Research Detail': ['title', 'fundingAgency', 'projectNature', 'level', 'duration'], 
         'Ph.D. Guidance Detail': ['nameOfStudent','topic','dateOfRegistration','status'], 
         'Books Published': ['title', 'isbn','publisherName','bookType','level','authorType'], 
         'Paper Presented': ['titleOfPaper','organizingBody','theme','level','modeOfParticipation','dateOfPresentation'], 
@@ -35,12 +36,14 @@ function transformResults(results) {
     };
 
     for (const key of keys) {
-        if (requiredFields[key]) {
+        if (requiredFields[key] && results[key]) {
             results[key] = results[key].map((value) => {
                 const filteredValue = {};
                 value = value.toObject();
                 requiredFields[key].forEach((field) => {
+                   
                     if (value && value[field] !== undefined) {
+                        
                         filteredValue[field] = value[field];
                     } else {
                         console.warn(`Missing field "${field}" in record for key "${key}"`);
@@ -59,28 +62,62 @@ exports.generateCV = async (req, res) => {
         const outputDir = 'c:/Users/devan/OneDrive/Documents/ARMS/server/output';
         const userId = req.body.userId;
         const data = req.body.data;
+        const payload = req.body.payload;
+        console.log('Received data:', payload);
 
         const results = {};
 
+        // Fetch data from schemas based on keys in the data array
         for (const key of data) {
             if (schemas[key]) {
                 const records = await schemas[key].find({ user: userId });
                 results[key] = records;
+            } else {
+                console.warn(`Schema for key "${key}" not found.`);
             }
-        }    
-        
-        const transResults = transformResults(results);
-        
-        const filePath = CVGenerator(transResults);
+        }
 
-        res.download(filePath, 'CV.pdf', (err) => {
-            if (err) {
-                console.error('Error sending file:', err);
-                res.status(500).json({ message: 'Error sending file', error: err.message });
-            }
+        if (Object.keys(results).length === 0) {
+            console.warn('No data found for the requested sections:', data);
+            return res.status(404).json({ message: 'No data found for the requested sections' });
+        }
+
+        
+
+        const transResults = transformResults(results);
+
+        const filePath = CVGenerator(transResults, outputDir, payload);
+
+        // Validate filePath before proceeding
+        if (!filePath || typeof filePath !== 'string' || !fs.existsSync(filePath)) {
+            console.error('Invalid or missing file path:', filePath);
+            return res.status(500).json({ message: 'Error generating CV: File not found' });
+        }
+
+        // Log file details for debugging
+        const stats = fs.statSync(filePath);
+        console.log('File path:', filePath);
+        console.log('File size on disk:', stats.size, 'bytes');
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="cv.pdf"');
+
+        const fileStream = fs.createReadStream(filePath);
+
+        fileStream.on('open', () => {
+            fileStream.pipe(res);
+        });
+
+        fileStream.on('error', (err) => {
+            console.error('Error reading file:', err);
+            res.status(500).json({ message: 'Error sending file', error: err.message });
+        });
+
+        fileStream.on('close', () => {
+            console.log('File successfully sent to client.');
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error', error);
         res.status(500).json({ message: 'Error generating CV', error: error.message });
     }
-}
+};

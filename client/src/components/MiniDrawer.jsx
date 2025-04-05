@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -80,18 +80,31 @@ export default function MiniDrawer({ selectOptions, datachanger, componentChange
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [activeOption, setActiveOption] = useState('Profile');
+  const [marginTop, setMarginTop] = useState(73);
 
   const toggleDrawer = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setMarginTop(Math.max(0, 74 - scrollTop));
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Drawer variant="permanent" open={open} sx={{
-          marginTop: "64px",
+          marginTop: `${marginTop}px`,
           [`& .MuiDrawer-paper`]: {
-            marginTop: "73px",
+            marginTop: `${marginTop}px`,
           }}}>
         <DrawerHeader>
           <IconButton onClick={toggleDrawer}>
@@ -107,7 +120,6 @@ export default function MiniDrawer({ selectOptions, datachanger, componentChange
           </Typography>  
         </StyledButton> : null}
         {open ? selectOptions?.map((option) => (
-          <>
           <StyledButton
             key={option._id}
             {...(activeOption === option._id && { active: "true" })}
@@ -115,7 +127,6 @@ export default function MiniDrawer({ selectOptions, datachanger, componentChange
           >
             <Typography>{option.name}</Typography>
           </StyledButton>
-          </>
         )) : null}
        {open ? <StyledButton 
           key={"Generate CV"}

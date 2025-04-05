@@ -20,8 +20,8 @@ class PDFDocumentWithTables extends PDFDocument {
         }
 
         const columnCount = table.headers.length;
-        const columnSpacing = options.columnSpacing || 5; // Reduced default column spacing
-        const rowSpacing = options.rowSpacing || 5;
+        const columnSpacing = options.columnSpacing || 8; // Reduced default column spacing
+        const rowSpacing = options.rowSpacing || 8;
         const usableWidth = options.width || (this.page.width - this.page.margins.left - this.page.margins.right);
 
         const prepareHeader = options.prepareHeader || (() => { });
@@ -60,15 +60,10 @@ class PDFDocumentWithTables extends PDFDocument {
 
         // Print all headers
         table.headers.forEach((header, i) => {
-            this.font("Times-Roman").fontSize(8).text(header, startX + i * columnContainerWidth, startY, {
+            this.font("Times-Roman").fontSize(10).text(header, startX + i * columnContainerWidth, startY, {
                 width: columnWidth,
                 align: "left"
             });
-
-
-
-
-
             
         });
 

@@ -28,6 +28,10 @@ const useAxiosPrivate = () => {
                     prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
                     return axiosPrivate(prevRequest);
                 }
+
+                else if(error?.response?.message === "ERR_NETWORK"){
+
+                }
                 return Promise.reject(error);
             }
         );

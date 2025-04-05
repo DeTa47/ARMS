@@ -644,7 +644,15 @@ exports.deletePolicyDocument = async (req, res) => {
 exports.createResearchProject = async (req, res) => {
   try {
     const data = req.body.data;
-    delete data._id;
+    if (!data._id) {
+      delete data._id; // Ensure _id is not sent as an empty string
+    }
+    if (!data.supportingDocument) {
+      delete data.supportingDocument; // Remove the field if no file is uploaded
+    }
+    if (!data.Sr_No) {
+      delete data.Sr_No; // Remove Sr_No if not provided to avoid duplicate key errors
+    }
     const newProject = new ResearchProject(data);
     const savedProject = await newProject.save();
     res.status(201).json(savedProject);
@@ -680,7 +688,14 @@ exports.getResearchProjectsByUserId = async (req, res) => {
 
 exports.updateResearchProject = async (req, res) => {
   try {
-    const updatedProject = await ResearchProject.findByIdAndUpdate(req.body.id, req.body.data, { new: true });
+    const { id, data } = req.body;
+    if (!id) {
+      return res.status(400).json({ message: "Invalid ID" });
+    }
+    if (!data.supportingDocument) {
+      delete data.supportingDocument; // Remove the field if no file is uploaded
+    }
+    const updatedProject = await ResearchProject.findByIdAndUpdate(id, data, { new: true });
     res.status(200).json(updatedProject);
   } catch (error) {
     res.status(400).json({ message: error.message });

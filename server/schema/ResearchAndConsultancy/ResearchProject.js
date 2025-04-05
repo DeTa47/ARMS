@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const researchProjectSchema = new mongoose.Schema({
+  _id: {
+    type: mongoose.Schema.Types.ObjectId,
+    auto: true, // Automatically generate ObjectId if not provided
+  },
   title: {
     type: String,
     required: false
@@ -23,7 +27,6 @@ const researchProjectSchema = new mongoose.Schema({
   },
   level: {
     type: String,
-    enum: ['University', 'National', 'International', 'State', 'Local'],
     required: false
   },
   duration: {
@@ -32,7 +35,6 @@ const researchProjectSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Ongoing', 'Completed', 'Pending'],
     required: false
   },
   startDate: {
@@ -40,18 +42,21 @@ const researchProjectSchema = new mongoose.Schema({
     required: false
   },
   supportingDocument: {
-    type: Buffer
+    type: mongoose.Schema.Types.ObjectId, // Ensure this is an ObjectId
+    ref: 'File', // Reference the File schema
+    required: false, // Make this field optional
   },
   seedGrant: {
-    type: Boolean,
-    default: false
+    type: String,
+    default: 'No',
   },
   seedGrantYear: {
     type: Number
   },
+  
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserDetails'
+    ref: 'UserDetails',
   },
   createdAt: {
     type: Date,
@@ -61,12 +66,6 @@ const researchProjectSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-});
-
-// Pre-save middleware to update the 'updatedAt' field on save
-researchProjectSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
 });
 
 module.exports = mongoose.model('ResearchProject', researchProjectSchema);

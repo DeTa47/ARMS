@@ -8,7 +8,6 @@ const OrganizationSchema = new mongoose.Schema({
 });
 
 const IndividualSchema = new mongoose.Schema({
-    Salutation: {type: String},
     IndividualName: {type: String},
     IndividualAddress: {type: String},
     IndividualCity: {type: String},
@@ -20,7 +19,9 @@ const IndividualSchema = new mongoose.Schema({
     IndividualDepartment: {type: String},
     IndividualGATEQualified: {type: String},
     IndividualJoiningDate: {type: String},
+    IndividualBirthDate: {type: String},
     IndividualPanNo: {type: String},
+    IndividualTeachingStatus: {type: String},
     RegisteredGuideatMSU: {type: String},
     YearOfRegistration: {type: Number},
     IndividualHIndex: {type: String},

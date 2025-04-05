@@ -85,10 +85,11 @@ export default function LoginSignup() {
         },
         withCredentials:true
       }).then((response) => {
-        console.log(response.data);
         
         setAuth(response.data);
-        if (response.data.CustomerType === "Admin") {
+       
+        if (response.data.data.CustomerType === 'Admin') {
+          console.log("Entered Admin");
           navigate("/Admin", { replace: true });
         } else {
           navigate("/dashboard", { replace: true });

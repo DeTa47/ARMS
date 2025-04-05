@@ -17,6 +17,8 @@
     "@mui/x-date-pickers": "^7.28.0",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.4.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

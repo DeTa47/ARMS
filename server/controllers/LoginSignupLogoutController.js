@@ -48,7 +48,7 @@ exports.login = async (req, res)=>{
             if (isPasswordCorrect) {
                 
                 const payload = {
-                    id: userData._id,
+                    
                     Name: userData[type][`${type}Name`],
                     Email: userData.Email,
                     CustomerType: userData.CustomerType,
@@ -57,7 +57,17 @@ exports.login = async (req, res)=>{
                     ApprovalStatus: userData.Status
                 }
 
+                if (userData.CustomerType === "Individual"){
+                    payload.userid = userData._id,
+                    payload.Designation = userData[type].IndividualDesignation;
+                    payload.Faculty = userData[type].IndividualFaculty;
+                    payload.Department = userData[type].IndividualDepartment;
+                    payload.PhoneNumber = userData[type].IndividualMobile;
+                }
 
+                else{
+                    payload.adminid = userData._id
+                }
 
                 const aT = await generateToken({ id: userData._id, Email: userData.Email}, process.env.JWT_SECRET, '20s');
                 const rT = await generateToken({ id: userData._id, Email: userData.Email}, process.env.JWT_REFRESH_SECRET, '1d');

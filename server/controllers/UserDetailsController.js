@@ -14,7 +14,6 @@ exports.updateUserDetails = async (req, res) => {
             const data = req.body.data;
             const id = req.body.id;
             const updatedDetails = await userDetails.findByIdAndUpdate(id, data, {new: true});
-            console.log(updatedDetails);
             res.status(200).send(updatedDetails);
        }
 

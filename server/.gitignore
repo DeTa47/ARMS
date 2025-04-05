@@ -1,4 +1,6 @@
 node_modules/
+/uploads
+uploads/
 /node_modules
 /output
 /.pnp
