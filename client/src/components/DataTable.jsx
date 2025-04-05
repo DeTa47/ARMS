@@ -32,7 +32,9 @@ import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import UploadFile from '../components/UploadFile';
-
+import Modal from '@mui/material/Modal';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 import { useState, useEffect } from 'react';
 
@@ -200,6 +202,8 @@ export default function EnhancedTable({ selectOptions, auth }) {
   const [editRowId, setEditRowId] = useState(null);
   const [editRowData, setEditRowData] = useState({});
   const [saveAction, setSaveAction] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalRowData, setModalRowData] = useState({});
   
   useEffect(() => {
     getData();
@@ -226,6 +230,15 @@ export default function EnhancedTable({ selectOptions, auth }) {
         getData(); // Fetch updated data from the server
     });
   }
+
+  // Function to transform column names from snake case to normal case
+  const transformColumnName = (columnName) => {
+    return columnName
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase letters
+      .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
+  };
+
   const getData = async () => {
     if (selectedRoute.route !== undefined) {
       axios.post(`http://localhost:8000/get${selectedRoute.route}`, {
@@ -241,12 +254,12 @@ export default function EnhancedTable({ selectOptions, auth }) {
         } else {
           setRows(res.data);
           if (res.data.length > 0) {
-            const keys = Object.keys(res.data[0]);
+            const keys = Object.keys(res.data[0]).filter(key => key !== '_id'); // Exclude '_id'
             const headCells = keys.map(key => ({
               id: key,
               numeric: typeof res.data[0][key] === 'number',
               disablePadding: false,
-              label: key,
+              label: transformColumnName(key), // Transform column names
             }));
             setHeadCells(headCells);
           }
@@ -257,25 +270,15 @@ export default function EnhancedTable({ selectOptions, auth }) {
     }
   }
 
-  const updateData = async () => {
-    const dataToSend = { ...editRowData };
-    if (!dataToSend._id) {
-        delete dataToSend._id; // Ensure _id is not sent as an empty string
-    }
-    if (!dataToSend.Sr_No) {
-      delete dataToSend.Sr_No; // Remove Sr_No if not provided
-    }
-
+  const updateData = async (id, data) => {
     axios.patch(`http://localhost:8000/${selectedRoute.route}`, {
-        id: editRowId,
-        data: dataToSend
-    })
-    .then((res) => {
-        setRows(rows.map(row => (row._id === editRowId ? editRowData : row)));
-        setEditRowId(null);
-        setSaveAction('');
+      id,
+      data,
+    }).then(() => {
+      setRows(rows.map(row => (row._id === id ? data : row)));
+      console.log('Rows: ', rows);
     });
-  }
+  };
 
   const deleteData = async (id) => {
     axios.delete(`http://localhost:8000/${selectedRoute.route}`, { data: { documentId: id }})
@@ -462,6 +465,68 @@ export default function EnhancedTable({ selectOptions, auth }) {
     return row[cell.id];
 };
 
+  const handleViewClick = (row) => {
+    setModalRowData(row);
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalRowData({});
+  };
+
+  const handleModalInputChange = (e, key) => {
+    const value = e?.target?.value || ''; // Default to an empty string if input is cleared
+    setModalRowData({ ...modalRowData, [key]: value });
+  };
+
+  const renderModalField = (key, value) => {
+    if (key === '_id') return null; // Exclude '_id' from the modal
+    if (key.includes('document') || key.includes('attachment') || key.includes('certificate') || key.includes('Document')) {
+      return (
+        <UploadFile
+          Accept={'image/*,.pdf, .docx, .xlsx'}
+          Id={"Upload Document"}
+          Name={"Upload Document"}
+          handleinputChange={(e) => handleModalInputChange(e, key)}
+          cellId={key}
+          fileId={value}
+        />
+      );
+    } else if (key.includes('Date') || key.includes('date')) {
+      return <AddDate val={value} handleinputChange={(e) => handleModalInputChange(e, key)} cellId={key} />;
+    } else {
+      return (
+        <TextField
+          label={key}
+          value={value}
+          onChange={(e) => handleModalInputChange(e, key)}
+          fullWidth
+          margin="normal"
+        />
+      );
+    }
+  };
+
+  const handleModalSave = () => {
+    updateData(modalRowData._id, modalRowData);
+    setModalOpen(false);
+  };
+
+  const handleModalDelete = () => {
+    deleteData(modalRowData._id);
+    setModalOpen(false);
+  };
+
+  // Render only the first 6 columns
+  const renderLimitedColumns = (row) => {
+    return headCells.slice(0, 6).map((cell) => (
+      <TableCell key={cell.id} align={cell.numeric ? 'right' : 'left'}>
+        {row[cell.id]}
+      </TableCell>
+    ));
+  };
+
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
@@ -476,112 +541,136 @@ export default function EnhancedTable({ selectOptions, auth }) {
   );
 
   return (
-   rows? 
-    <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} selectedRoute={selectedRoute} setSelectedRoute={setSelectedRoute} routesArray={selectOptions.routes} />
-        <TableContainer component={Paper} sx={{width: "100%", 
-            maxHeight: "400px", 
-            overflowY: "auto", 
-            boxShadow: 3,
-            borderRadius: 2,}}>
-          <Table sx={{tableLayout: "auto",width: "100%"}} aria-labelledby="tableTitle" size={dense ? 'small' : 'medium'}>
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length}
-              headCells={headCells}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                
-                const isItemSelected = selected.includes(row._id);
-                const labelId = `enhanced-table-checkbox-${index}`;
+    <>
+      <Box sx={{ width: '100%' }}>
+        <Paper sx={{ width: '100%', mb: 2 }}>
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            selectedRoute={selectedRoute}
+            setSelectedRoute={setSelectedRoute}
+            routesArray={selectOptions.routes}
+          />
+          <TableContainer component={Paper} sx={{ width: '100%', maxHeight: '400px', overflowY: 'auto', boxShadow: 3, borderRadius: 2 }}>
+            <Table sx={{ tableLayout: 'auto', width: '100%' }} aria-labelledby="tableTitle" size={dense ? 'small' : 'medium'}>
+              <EnhancedTableHead
+                numSelected={selected.length}
+                order={order}
+                orderBy={orderBy}
+                onSelectAllClick={handleSelectAllClick}
+                onRequestSort={handleRequestSort}
+                rowCount={rows.length}
+                headCells={headCells.slice(0, 6)} // Limit to first 6 columns
+              />
+              <TableBody>
+                {visibleRows.map((row, index) => {
+                  const isItemSelected = selected.includes(row._id);
+                  const labelId = `enhanced-table-checkbox-${index}`;
 
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row._id}
-                    selected={isItemSelected}
-                    //sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        onClick={(event) => handleClick(event, row._id)}
-                        checked={isItemSelected}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                      />
-                    </TableCell>
-                    {
-                    headCells.map((cell) =>
-                     
-                      cell.id !== '_id' && (
-                        
-                        <TableCell key={cell.id} align={cell.numeric ? 'right' : 'left'}>
-                          {renderCellContent(cell, row)}
-                        </TableCell>
-                      )
-                    )}
-                    <TableCell align="right">
-                      {editRowId === row._id ? (
-                        <>
-                          <IconButton label="Save changes" onClick={()=>handleSaveClick()}>
-                            <SaveIcon />
-                          </IconButton>
-                          
-                          <IconButton label="Cancel changes" onClick={cancelEdit}>
-                            <ClearIcon />
-                          </IconButton>
-                        </>
-                      ) : (
-                        <IconButton label="Edit row data" onClick={() => handleEditClick(row)}>
-                          <EditIcon />
-                        </IconButton>
-                      )}
-                      <IconButton label="Delete selected row" onClick={() => handleDeleteClick(row._id)}>
-                        <DeleteIcon />
-                      </IconButton>
-
-                      
-                    </TableCell>
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row._id}
+                      selected={isItemSelected}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          onClick={(event) => handleClick(event, row._id)}
+                          checked={isItemSelected}
+                          inputProps={{
+                            'aria-labelledby': labelId,
+                          }}
+                        />
+                      </TableCell>
+                      {renderLimitedColumns(row)}
+                      <TableCell align="right">
+                        <Button variant="contained" onClick={() => handleViewClick(row)}>
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {emptyRows > 0 && (
+                  <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
+                    <TableCell colSpan={6} />
                   </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
-      <IconButton label="Add Data" onClick={handleAddRow}>
-        <AddIcon />
-      </IconButton>
-    </Box>:
-     <p>No data found</p>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <FormControlLabel
+            control={<Switch checked={dense} onChange={handleChangeDense} />}
+            label="Dense padding"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setModalRowData({});
+              setModalOpen(true);
+            }}
+          >
+            Add Data
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Modal for viewing and editing row data */}
+      <Modal open={modalOpen} onClose={handleModalClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: 600,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            maxHeight: '90%',
+            overflowY: 'auto',
+          }}
+        >
+          <Typography variant="h6" component="h2" gutterBottom>
+            {Object.keys(modalRowData).length === 0 ? 'Add New Data' : 'Edit Row Data'}
+          </Typography>
+          {headCells.map((cell) => (
+            <Box key={cell.id} sx={{ mb: 2 }}>
+              {renderModalField(cell.id, modalRowData[cell.id] || '')}
+            </Box>
+          ))}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+            <Button variant="contained" color="primary" onClick={handleModalSave}>
+              Save
+            </Button>
+            {Object.keys(modalRowData).length > 0 && (
+              <Button variant="contained" color="error" onClick={handleModalDelete}>
+                Delete
+              </Button>
+            )}
+            <Button variant="outlined" onClick={handleModalClose}>
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </>
   );
 }

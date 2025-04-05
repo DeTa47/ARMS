@@ -70,7 +70,7 @@ const UserProfile = () => {
       {auth.data.CustomerType === 'Admin' ? (
         <div className="w-full flex justify-start px-6 mb-4">
           <button
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
+            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 cursor-pointer"
             onClick={() => navigate('/Admin', { replace: true })}
           >
             Back to Dashboard
